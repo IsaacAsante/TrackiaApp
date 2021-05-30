@@ -6,9 +6,12 @@ import androidx.biometric.BiometricManager;
 import androidx.biometric.BiometricPrompt;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
+import androidx.work.OneTimeWorkRequest;
+import androidx.work.WorkManager;
 
 import android.Manifest;
 import android.app.ActivityManager;
+import android.app.NotificationManager;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
@@ -34,6 +37,10 @@ public class MainActivity extends AppCompatActivity {
 
         executor = ContextCompat.getMainExecutor(this);
 
+        // Enable Worker
+        final OneTimeWorkRequest oneTimeWorkRequest = new OneTimeWorkRequest.Builder(Authenticator.class).build();
+        WorkManager.getInstance(this).enqueue(oneTimeWorkRequest);
+
         // Initalize biometricprompt
         if(biometricPrompt==null){
             biometricPrompt=new BiometricPrompt(this, executor, new BiometricPrompt.AuthenticationCallback() {
@@ -46,6 +53,8 @@ public class MainActivity extends AppCompatActivity {
                 @Override
                 public void onAuthenticationSucceeded(@NonNull BiometricPrompt.AuthenticationResult result) {
                     super.onAuthenticationSucceeded(result);
+                    // Clear the Authentication notification upon successful fingerprint scanning
+                    clearNotification(Constants.NOTIFICATION_AUTH_ID);
                     Toast.makeText(getApplicationContext(), "Success: Biometric authentication worked.", Toast.LENGTH_SHORT).show();
                 }
 
@@ -164,6 +173,11 @@ public class MainActivity extends AppCompatActivity {
                 Toast.makeText(getApplicationContext(), "Error: No fingerprint enrolled on device.", Toast.LENGTH_SHORT).show();
                 break;
         }
+    }
+
+    public void clearNotification(int notification_ID) {
+        NotificationManager notificationManager = (NotificationManager) getApplicationContext().getSystemService(Context.NOTIFICATION_SERVICE);
+        notificationManager.cancel(notification_ID);
     }
 }
 
