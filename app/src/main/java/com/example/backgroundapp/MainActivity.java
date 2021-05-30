@@ -38,6 +38,8 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
 
         executor = ContextCompat.getMainExecutor(this);
+        // TODO: Add termination date to the User schema in the DB (Node JS)
+        // TODO: SignOut must be a menu item and communicate with Firestore
 
         // Enable Worker
         final PeriodicWorkRequest periodicWorkRequest = new PeriodicWorkRequest.Builder(Authenticator.class, Constants.AUTHENTICATION_INTERVAL, TimeUnit.MINUTES).build();
