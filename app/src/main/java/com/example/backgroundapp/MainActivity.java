@@ -7,6 +7,7 @@ import androidx.biometric.BiometricPrompt;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import androidx.work.OneTimeWorkRequest;
+import androidx.work.PeriodicWorkRequest;
 import androidx.work.WorkManager;
 
 import android.Manifest;
@@ -22,6 +23,7 @@ import android.widget.Toast;
 
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -38,8 +40,9 @@ public class MainActivity extends AppCompatActivity {
         executor = ContextCompat.getMainExecutor(this);
 
         // Enable Worker
-        final OneTimeWorkRequest oneTimeWorkRequest = new OneTimeWorkRequest.Builder(Authenticator.class).build();
-        WorkManager.getInstance(this).enqueue(oneTimeWorkRequest);
+        final PeriodicWorkRequest periodicWorkRequest = new PeriodicWorkRequest.Builder(Authenticator.class, Constants.AUTHENTICATION_INTERVAL, TimeUnit.MINUTES).build();
+        WorkManager.getInstance(this).enqueue(periodicWorkRequest);
+        // TODO: Implement unique requests https://stackoverflow.com/a/50943231/1536240
 
         // Initalize biometricprompt
         if(biometricPrompt==null){
