@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:gravity="center"
+    android:orientation="vertical"
+    tools:context=".MainActivity">
+
+    <Button
+        android:id="@+id/buttonStartLocationUpdates"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/start_tracking"
+        android:layout_marginLeft="20pt"
+        android:layout_marginRight="20pt"
+        android:layout_marginBottom="4pt"/>
+
+    <Button
+        android:id="@+id/buttonStopLocationUpdates"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/stop_tracking"
+        android:layout_marginLeft="20pt"
+        android:layout_marginRight="20pt"
+        android:layout_marginBottom="4pt" />
+
+    <Button
+        android:id="@+id/buttonAuthenticateWithFingerprint"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/authenticate"
+        android:layout_marginLeft="20pt"
+        android:layout_marginRight="20pt"
+        android:layout_marginBottom="4pt" />
+
+</LinearLayout>
