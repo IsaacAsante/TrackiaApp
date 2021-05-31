@@ -81,16 +81,18 @@ public class MainActivity extends AppCompatActivity {
         Log.i(Constants.CURRENT_USER, userUID);
 
         SharedPreferences sharedPreferences = getApplicationContext().getSharedPreferences(userUID, Context.MODE_PRIVATE);
-        Log.i("LAST LOGIN", sharedPreferences.getString("lastLogin", ""));
-        Log.i("FIRSTNAME", sharedPreferences.getString("firstname", ""));
-        Log.i("ROLE", sharedPreferences.getString("role", ""));
-        Log.i("GENDER", sharedPreferences.getString("gender", ""));
         Log.i("CITY", sharedPreferences.getString("city", ""));
-        Log.i("PIN_LOCATION", sharedPreferences.getString("pinLocation", ""));
-        Log.i("LOCAL_STATE", sharedPreferences.getString("localState", ""));
-        Log.i("LAST_NAME", sharedPreferences.getString("lastname", ""));
-        Log.i("HOUSE_ADDRESS", sharedPreferences.getString("houseAddress", ""));
+        Log.i("CONTACT", sharedPreferences.getString("contact", ""));
+        Log.i("EMAIL", sharedPreferences.getString("email", ""));
+        Log.i("FIRSTNAME", sharedPreferences.getString("firstname", ""));
+        Log.i("GENDER", sharedPreferences.getString("gender", ""));
         Log.i("GOVERNMENT_ID", sharedPreferences.getString("governmentID", ""));
+        Log.i("HOUSE_ADDRESS", sharedPreferences.getString("houseAddress", ""));
+        Log.i("LAST LOGIN", sharedPreferences.getString("lastLogin", ""));
+        Log.i("LAST_NAME", sharedPreferences.getString("lastname", ""));
+        Log.i("LOCAL_STATE", sharedPreferences.getString("localState", ""));
+        Log.i("PIN_LOCATION", sharedPreferences.getString("pinLocation", ""));
+        Log.i("ROLE", sharedPreferences.getString("role", ""));
 
         executor = ContextCompat.getMainExecutor(this);
         // TODO: Add termination date to the User schema in the DB (Node JS)

@@ -103,6 +103,8 @@ public class Login extends AppCompatActivity {
                                                         editor.putString("lastname", document.getString("lastname"));
                                                         editor.putString("houseAddress", document.getString("houseAddress"));
                                                         editor.putString("governmentID", document.getString("governmentID"));
+                                                        editor.putString("contact", document.getString("contact"));
+                                                        editor.putString("email", document.getString("email"));
                                                         editor.commit();
                                                         // Once the user's data's been saved locally, go to the main screen.
                                                         startActivity(intent);
