@@ -9,4 +9,5 @@ public class Constants {
     static final String NOTIFICATION_AUTH_TITLE = "authAlert";
     static final int NOTIFICATION_TRACKING = 146;
     static final int NOTIFICATION_AUTH_ID = 147;
+    static final int QUARANTINE_COMPULSORY_DAYS = 14;
 }

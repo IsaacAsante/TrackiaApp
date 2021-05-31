@@ -25,6 +25,7 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.Toast;
 
+import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.FirebaseFirestore;
 
@@ -41,7 +42,7 @@ public class MainActivity extends AppCompatActivity {
     private FirebaseFirestore db;
 
     private boolean tracking_ongoing;
-    private String userUID;
+    private String userUID, user_firstname, user_lastname, user_email, user_contact, governmentID;
     private short authFailedCounter;
 
     private Button buttonStartTracking;
@@ -66,11 +67,27 @@ public class MainActivity extends AppCompatActivity {
                 Intent intent = new Intent(this, Login.class); // Return to the Login screen
                 startActivity(intent);
             case R.id.EndQuarantine:
-                clearNotification(Constants.NOTIFICATION_AUTH_ID); // Clear any authentication notification displayed
-                WorkManager.getInstance(this).cancelAllWork(); // Stop all authentication reminders
-                getApplicationContext().getSharedPreferences(Constants.CURRENT_USER, Context.MODE_PRIVATE).edit().clear().commit(); // Clear the user's local data
-                stopLocationService(); // Terminate the location tracking service
-                FirebaseAuth.getInstance().signOut(); // Sign out the user
+                // Only allow the monitoring services to terminate if 14 days have passed since the first location update received
+                Long quarantineFinal = sharedPreferences.getLong("trackingBegin", 0) + (Constants.QUARANTINE_COMPULSORY_DAYS * 24 * 60 * 60 * 1000);
+                if (System.currentTimeMillis() < quarantineFinal) {
+                    Toast.makeText(this, "Refused. Your quarantine period is not over yet.", Toast.LENGTH_LONG).show();
+                    Log.i("VIOLATION", "User tried to terminate the quarantine monitoring services earlier than expected (" + Constants.QUARANTINE_COMPULSORY_DAYS + " days)." +
+                            "\nGenerating alert in the Trackia system with following details: " +
+                            "\nName: " + user_firstname + " " + user_lastname +
+                            "\nEmail: " + user_email +
+                            "\nContact number: " + user_contact +
+                            "\nGovernment ID: " + governmentID +
+                            "\nViolation recorded at: " + System.currentTimeMillis() + " (Current time in milliseconds, to be converted in Date format)");
+                } else {
+                    clearNotification(Constants.NOTIFICATION_AUTH_ID); // Clear any authentication notification displayed
+                    WorkManager.getInstance(this).cancelAllWork(); // Stop all authentication reminders
+                    getApplicationContext().getSharedPreferences(Constants.CURRENT_USER, Context.MODE_PRIVATE).edit().clear().commit(); // Clear the user's local data
+                    stopLocationService(); // Terminate the location tracking service
+                    FirebaseAuth.getInstance().signOut(); // Sign out the user
+                    Intent resetIntent = new Intent(this, Login.class); // Return to the Login screen
+                    startActivity(resetIntent);
+                    Toast.makeText(this, "All tracking services have been terminated.", Toast.LENGTH_LONG).show();
+                }
             default:
                 return super.onOptionsItemSelected(item);
         }
@@ -105,11 +122,18 @@ public class MainActivity extends AppCompatActivity {
         Log.i("GENDER", sharedPreferences.getString("gender", ""));
         Log.i("GOVERNMENT_ID", sharedPreferences.getString("governmentID", ""));
         Log.i("HOUSE_ADDRESS", sharedPreferences.getString("houseAddress", ""));
-        Log.i("LAST LOGIN", sharedPreferences.getString("lastLogin", ""));
+        Log.i("LAST LOGIN", String.valueOf(sharedPreferences.getLong("lastLogin", 0)));
         Log.i("LAST_NAME", sharedPreferences.getString("lastname", ""));
         Log.i("LOCAL_STATE", sharedPreferences.getString("localState", ""));
         Log.i("PIN_LOCATION", sharedPreferences.getString("pinLocation", ""));
         Log.i("ROLE", sharedPreferences.getString("role", ""));
+        Log.i("TRACKING_BEGIN", String.valueOf(sharedPreferences.getLong("trackingBegin", 0)));
+
+        user_contact = sharedPreferences.getString("contact", "");
+        user_firstname = sharedPreferences.getString("firstname", "");
+        user_lastname = sharedPreferences.getString("lastname", "");
+        user_email = sharedPreferences.getString("email", "");
+        governmentID = sharedPreferences.getString("governmentID", "");
 
         // Authentication monitoring
         authFailedCounter = 0;
@@ -148,7 +172,7 @@ public class MainActivity extends AppCompatActivity {
                     if (++authFailedCounter >= 3) {
                         Log.i("AUTHENTICATION FAIL:", "Weird authentication behavior detected." +
                                 "\nGenerating alert in the Trackia system with following details: " +
-                        "\nName: " + sharedPreferences.getString("firstname", "") + " " + sharedPreferences.getString("lastname", "") +
+                                "\nName: " + sharedPreferences.getString("firstname", "") + " " + sharedPreferences.getString("lastname", "") +
                                 "\nEmail: " + sharedPreferences.getString("email", "") +
                                 "\nContact number: " + sharedPreferences.getString("contact", "") +
                                 "\nDetected at: " + System.currentTimeMillis() + " (Current time in milliseconds, to be converted in Date format)" +
@@ -184,9 +208,17 @@ public class MainActivity extends AppCompatActivity {
                     );
                 } else {
                     startLocationService();
+                    if (sharedPreferences.getLong("trackingBegin", 0) == 0) {
+                        long monitoringStartTime = System.currentTimeMillis();
+                        FireStoreDB.getUserRef(userUID).update("trackingBegin", monitoringStartTime).addOnSuccessListener(new OnSuccessListener<Void>() {
+                            @Override
+                            public void onSuccess(Void aVoid) {
+                                getApplicationContext().getSharedPreferences(userUID, Context.MODE_PRIVATE).edit().putLong("trackingBegin", monitoringStartTime).apply();
+                                Log.i("TRACKING BEGIN", "The user's quarantine monitoring has official began. Exact time and date recorded.");
+                            }
+                        });
+                    }
                     tracking_ongoing = true;
-                    buttonStartTracking.setVisibility(View.GONE);
-                    buttonStopTracking.setVisibility(View.VISIBLE);
 
                 }
             }
@@ -198,8 +230,6 @@ public class MainActivity extends AppCompatActivity {
             public void onClick(View v) {
                 stopLocationService();
                 tracking_ongoing = false;
-                buttonStopTracking.setVisibility(View.GONE);
-                buttonStartTracking.setVisibility(View.VISIBLE);
             }
         });
     }
@@ -243,6 +273,8 @@ public class MainActivity extends AppCompatActivity {
             intent.putExtra("violation_time", System.currentTimeMillis());
             intent.putExtra("governmentID", sharedPreferences.getString("governmentID", ""));
             startService(intent);
+            buttonStartTracking.setVisibility(View.GONE);
+            buttonStopTracking.setVisibility(View.VISIBLE);
             Toast.makeText(this, "Tracking started.", Toast.LENGTH_SHORT).show();
         }
     }
@@ -252,6 +284,8 @@ public class MainActivity extends AppCompatActivity {
             Intent intent = new Intent(getApplicationContext(), LocationService.class);
             intent.setAction(Constants.ACTION_STOP_LOCATION_SERVICE);
             startService(intent);
+            buttonStopTracking.setVisibility(View.GONE);
+            buttonStartTracking.setVisibility(View.VISIBLE);
             Toast.makeText(this, "Tracking stopped.", Toast.LENGTH_SHORT).show();
         }
     }

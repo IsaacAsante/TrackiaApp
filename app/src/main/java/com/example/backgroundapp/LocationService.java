@@ -31,9 +31,9 @@ public class LocationService extends Service {
             if (locationResult != null && locationResult.getLastLocation() != null) {
                 double currentLatitude = locationResult.getLastLocation().getLatitude();
                 double currentLongitude = locationResult.getLastLocation().getLongitude();
-                Log.i("GPS", "Latitude: " + currentLatitude + " / Longitude: " + currentLongitude);
+                Log.i("GPS", "Latitude: " + currentLatitude + " || Longitude: " + currentLongitude);
 
-                Log.i("GPS", "PinLatitude: " + pinLatitude + " / PinLongitude: " + pinLongitude);
+                Log.i("GPS", "PinLatitude: " + pinLatitude + " || PinLongitude: " + pinLongitude);
 
                 if (pinLatitude > 0.0d && pinLongitude > 0.0d) {
                     double distance = Haversine.getDistance(pinLatitude, pinLongitude, currentLatitude, currentLongitude);

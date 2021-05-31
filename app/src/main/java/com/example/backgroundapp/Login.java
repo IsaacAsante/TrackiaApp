@@ -6,6 +6,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.os.Build;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
@@ -78,7 +79,6 @@ public class Login extends AppCompatActivity {
                                         // Sign in success, update UI with the signed-in user's information
                                         FirebaseUser user = mAuth.getCurrentUser();
                                         Log.i("LOGIN_RESPONSE", user.toString());
-                                        Toast.makeText(Login.this, R.string.enter_password_again, Toast.LENGTH_SHORT).show();
                                         final Intent intent = new Intent(Login.this, MainActivity.class);
                                         intent.putExtra(Constants.CURRENT_USER, user.getUid());
                                         DocumentReference docRef = FireStoreDB.getUserRef(user.getUid());
@@ -94,7 +94,7 @@ public class Login extends AppCompatActivity {
                                                         // Save data in SharedPreferences
                                                         sharedPreferences = getSharedPreferences(user.getUid(), Context.MODE_PRIVATE);
                                                         SharedPreferences.Editor editor = sharedPreferences.edit();
-                                                        editor.putString("lastLogin", Long.toString(System.currentTimeMillis()));
+                                                        editor.putLong("lastLogin", System.currentTimeMillis()); // TODO: UPDATE IN DB
                                                         editor.putString("firstname", document.getString("firstname"));
                                                         editor.putString("role", document.getString("role"));
                                                         editor.putString("gender", document.getString("gender"));
@@ -106,7 +106,11 @@ public class Login extends AppCompatActivity {
                                                         editor.putString("governmentID", document.getString("governmentID"));
                                                         editor.putString("contact", document.getString("contact"));
                                                         editor.putString("email", document.getString("email"));
+                                                        editor.putLong("trackingBegin", (Long) document.getLong("trackingBegin"));
+                                                        editor.putLong("lastLogout", (Long) document.getLong("lastLogout"));
+                                                        editor.putLong("firstLogin", (Long) document.getLong("firstLogin"));
                                                         editor.commit();
+
                                                         // Once the user's data's been saved locally, go to the main screen.
                                                         startActivity(intent);
                                                     } else {
