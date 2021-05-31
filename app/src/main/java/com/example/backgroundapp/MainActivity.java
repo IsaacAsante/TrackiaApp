@@ -16,6 +16,7 @@ import android.app.ActivityManager;
 import android.app.NotificationManager;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.util.Log;
@@ -78,6 +79,18 @@ public class MainActivity extends AppCompatActivity {
         db = FirebaseFirestore.getInstance();
         userUID = getIntent().getStringExtra(Constants.CURRENT_USER);
         Log.i(Constants.CURRENT_USER, userUID);
+
+        SharedPreferences sharedPreferences = getApplicationContext().getSharedPreferences(userUID, Context.MODE_PRIVATE);
+        Log.i("LAST LOGIN", sharedPreferences.getString("lastLogin", ""));
+        Log.i("FIRSTNAME", sharedPreferences.getString("firstname", ""));
+        Log.i("ROLE", sharedPreferences.getString("role", ""));
+        Log.i("GENDER", sharedPreferences.getString("gender", ""));
+        Log.i("CITY", sharedPreferences.getString("city", ""));
+        Log.i("PIN_LOCATION", sharedPreferences.getString("pinLocation", ""));
+        Log.i("LOCAL_STATE", sharedPreferences.getString("localState", ""));
+        Log.i("LAST_NAME", sharedPreferences.getString("lastname", ""));
+        Log.i("HOUSE_ADDRESS", sharedPreferences.getString("houseAddress", ""));
+        Log.i("GOVERNMENT_ID", sharedPreferences.getString("governmentID", ""));
 
         executor = ContextCompat.getMainExecutor(this);
         // TODO: Add termination date to the User schema in the DB (Node JS)

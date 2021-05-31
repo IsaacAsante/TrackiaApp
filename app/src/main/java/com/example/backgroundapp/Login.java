@@ -3,7 +3,9 @@ package com.example.backgroundapp;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
+import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
@@ -16,8 +18,12 @@ import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.firestore.DocumentReference;
+import com.google.firebase.firestore.DocumentSnapshot;
 
 public class Login extends AppCompatActivity {
+
+    private SharedPreferences sharedPreferences;
 
     private FirebaseAuth mAuth;
 
@@ -75,7 +81,39 @@ public class Login extends AppCompatActivity {
                                         Toast.makeText(Login.this, R.string.enter_password_again, Toast.LENGTH_SHORT).show();
                                         final Intent intent = new Intent(Login.this, MainActivity.class);
                                         intent.putExtra(Constants.CURRENT_USER, user.getUid());
-                                        startActivity(intent);
+                                        DocumentReference docRef = FireStoreDB.getUserRef(user.getUid());
+                                        // Load details from DB
+                                        docRef.get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
+                                            @Override
+                                            public void onComplete(@NonNull Task<DocumentSnapshot> task) {
+                                                if (task.isSuccessful()) {
+                                                    DocumentSnapshot document = task.getResult();
+                                                    if (document.exists()) {
+                                                        Log.i("USER FOUND", "DocumentSnapshot data: " + document.getData());
+                                                        // Save data in SharedPreferences
+                                                        sharedPreferences = getSharedPreferences(user.getUid(), Context.MODE_PRIVATE);
+                                                        SharedPreferences.Editor editor = sharedPreferences.edit();
+                                                        editor.putString("lastLogin", Long.toString(System.currentTimeMillis()));
+                                                        editor.putString("firstname", document.getString("firstname"));
+                                                        editor.putString("role", document.getString("role"));
+                                                        editor.putString("gender",document.getString("gender"));
+                                                        editor.putString("city", document.getString("city"));
+                                                        editor.putString("pinLocation", document.getString("pinLocation"));
+                                                        editor.putString("localState", document.getString("localState"));
+                                                        editor.putString("lastname", document.getString("lastname"));
+                                                        editor.putString("houseAddress", document.getString("houseAddress"));
+                                                        editor.putString("governmentID", document.getString("governmentID"));
+                                                        editor.commit();
+                                                        // Once the user's data's been saved locally, go to the main screen.
+                                                        startActivity(intent);
+                                                    } else {
+                                                        Log.i("USER FOUND", "No such document");
+                                                    }
+                                                } else {
+                                                    Log.d("USER FOUND", "get failed with ", task.getException());
+                                                }
+                                            }
+                                        });
                                     } else {
                                         // If sign in fails, display a message to the user.
                                         Log.w("LOGIN_RESPONSE", "signInWithEmail:failure", task.getException());
