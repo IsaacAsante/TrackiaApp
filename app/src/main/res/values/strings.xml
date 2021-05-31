@@ -7,4 +7,6 @@
     <string name="hello_blank_fragment">Hello blank fragment</string>
     <string name="auth_notification_title">Check into Trackia now</string>
     <string name="auth_notification_task">Open the Trackia app and authenticate yourself.</string>
+    <string name="your_email">Your email</string>
+    <string name="your_password">Your password</string>
 </resources>

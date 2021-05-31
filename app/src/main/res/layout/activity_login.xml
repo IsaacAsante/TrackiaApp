@@ -3,8 +3,8 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".Login"
-    android:orientation="vertical">
+    android:orientation="vertical"
+    tools:context=".Login">
 
     <EditText
         android:id="@+id/EditText_username"
@@ -12,15 +12,17 @@
         android:layout_height="30pt"
         android:layout_marginLeft="10pt"
         android:layout_marginTop="10pt"
-        android:layout_marginRight="10pt" />
+        android:layout_marginRight="10pt"
+        android:hint="@string/your_email" />
 
     <EditText
         android:id="@+id/EditText_password"
         android:layout_width="match_parent"
         android:layout_height="30pt"
         android:layout_marginLeft="10pt"
+        android:layout_marginTop="10pt"
         android:layout_marginRight="10pt"
-        android:layout_marginTop="10pt"/>
+        android:hint="@string/your_password" />
 
     <Button
         android:id="@+id/Button_submit"
@@ -28,7 +30,6 @@
         android:layout_height="30pt"
         android:layout_marginLeft="10pt"
         android:layout_marginTop="10pt"
-        android:layout_marginRight="10pt"
-        />
+        android:layout_marginRight="10pt" />
 
 </LinearLayout>
