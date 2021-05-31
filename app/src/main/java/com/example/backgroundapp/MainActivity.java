@@ -44,6 +44,8 @@ public class MainActivity extends AppCompatActivity {
 
     private String userUID;
 
+    private SharedPreferences sharedPreferences;
+
     // Menu
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -64,7 +66,9 @@ public class MainActivity extends AppCompatActivity {
             case R.id.EndQuarantine:
                 clearNotification(Constants.NOTIFICATION_AUTH_ID); // Clear any authentication notification displayed
                 WorkManager.getInstance(this).cancelAllWork(); // Stop all authentication reminders
+                getApplicationContext().getSharedPreferences(Constants.CURRENT_USER, Context.MODE_PRIVATE).edit().clear().commit(); // Clear the user's local data
                 stopLocationService(); // Terminate the location tracking service
+                FirebaseAuth.getInstance().signOut(); // Sign out the user
             default:
                 return super.onOptionsItemSelected(item);
         }
@@ -80,7 +84,7 @@ public class MainActivity extends AppCompatActivity {
         userUID = getIntent().getStringExtra(Constants.CURRENT_USER);
         Log.i(Constants.CURRENT_USER, userUID);
 
-        SharedPreferences sharedPreferences = getApplicationContext().getSharedPreferences(userUID, Context.MODE_PRIVATE);
+        sharedPreferences = getApplicationContext().getSharedPreferences(userUID, Context.MODE_PRIVATE);
         Log.i("CITY", sharedPreferences.getString("city", ""));
         Log.i("CONTACT", sharedPreferences.getString("contact", ""));
         Log.i("EMAIL", sharedPreferences.getString("email", ""));
@@ -192,6 +196,14 @@ public class MainActivity extends AppCompatActivity {
         if (!isLocationServiceRunning()) {
             Intent intent = new Intent(getApplicationContext(), LocationService.class);
             intent.setAction(Constants.ACTION_START_LOCATION_SERVICE);
+            // Save the pinLocation data in the intent for the Location Service
+            intent.putExtra("pinLocation", sharedPreferences.getString("pinLocation", ""));
+            intent.putExtra("firstname", sharedPreferences.getString("firstname", ""));
+            intent.putExtra("lastname", sharedPreferences.getString("lastname", ""));
+            intent.putExtra("contact", sharedPreferences.getString("contact", ""));
+            intent.putExtra("email", sharedPreferences.getString("email", ""));
+            intent.putExtra("violation_time", System.currentTimeMillis());
+            intent.putExtra("governmentID", sharedPreferences.getString("governmentID", ""));
             startService(intent);
             Toast.makeText(this, "Tracking started.", Toast.LENGTH_SHORT).show();
         }

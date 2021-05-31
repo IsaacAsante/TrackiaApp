@@ -90,13 +90,14 @@ public class Login extends AppCompatActivity {
                                                     DocumentSnapshot document = task.getResult();
                                                     if (document.exists()) {
                                                         Log.i("USER FOUND", "DocumentSnapshot data: " + document.getData());
+
                                                         // Save data in SharedPreferences
                                                         sharedPreferences = getSharedPreferences(user.getUid(), Context.MODE_PRIVATE);
                                                         SharedPreferences.Editor editor = sharedPreferences.edit();
                                                         editor.putString("lastLogin", Long.toString(System.currentTimeMillis()));
                                                         editor.putString("firstname", document.getString("firstname"));
                                                         editor.putString("role", document.getString("role"));
-                                                        editor.putString("gender",document.getString("gender"));
+                                                        editor.putString("gender", document.getString("gender"));
                                                         editor.putString("city", document.getString("city"));
                                                         editor.putString("pinLocation", document.getString("pinLocation"));
                                                         editor.putString("localState", document.getString("localState"));

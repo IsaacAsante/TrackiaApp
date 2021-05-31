@@ -6,6 +6,7 @@ import android.app.PendingIntent;
 import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Build;
 import android.os.IBinder;
 import android.os.Looper;
@@ -21,15 +22,28 @@ import com.google.android.gms.location.LocationResult;
 import com.google.android.gms.location.LocationServices;
 
 public class LocationService extends Service {
+    private static double pinLatitude, pinLongitude;
+    private static String userUID;
     private LocationCallback locationCallback = new LocationCallback() {
         @Override
         public void onLocationResult(@NonNull LocationResult locationResult) {
             super.onLocationResult(locationResult);
             if (locationResult != null && locationResult.getLastLocation() != null) {
-                double latitude = locationResult.getLastLocation().getLatitude();
-                double longitude = locationResult.getLastLocation().getLongitude();
-                Log.d("GPS", "Latitude: " + latitude + " / Longitude: " + longitude);
+                double currentLatitude = locationResult.getLastLocation().getLatitude();
+                double currentLongitude = locationResult.getLastLocation().getLongitude();
+                Log.i("GPS", "Latitude: " + currentLatitude + " / Longitude: " + currentLongitude);
 
+                Log.i("GPS", "PinLatitude: " + pinLatitude + " / PinLongitude: " + pinLongitude);
+
+                if (pinLatitude > 0.0d && pinLongitude > 0.0d) {
+                    double distance = Haversine.getDistance(pinLatitude, pinLongitude, currentLatitude, currentLongitude);
+                    Log.i("HAVERSINE DISTANCE", String.valueOf(distance) + " kilometers");
+                    if (distance > 0.1) {
+                        Log.i("VIOLATION", "User detected outside the boundaries of their Quarantine Zone." +
+                                "\nEmailing monitors now with the following details:\n" +
+                                "User name: ")
+                    }
+                }
             }
         }
     };
@@ -100,6 +114,10 @@ public class LocationService extends Service {
             String action = intent.getAction();
             if (action != null) {
                 if (action.equals(Constants.ACTION_START_LOCATION_SERVICE)) {
+                    SharedPreferences sharedPreferences = getApplicationContext().getSharedPreferences(userUID, Context.MODE_PRIVATE);
+                    String pinLocation = intent.getStringExtra("pinLocation");
+                    pinLatitude = Double.parseDouble(pinLocation.split(", ")[0]);
+                    pinLongitude = Double.parseDouble(pinLocation.split(", ")[1]);
                     startLocationService();
                 } else if (action.equals(Constants.ACTION_STOP_LOCATION_SERVICE)) {
                     stopLocationService();
