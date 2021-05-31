@@ -33,6 +33,7 @@ public class Login extends AppCompatActivity {
         FirebaseUser currentUser = mAuth.getCurrentUser();
         if (currentUser != null) {
             Intent intent = new Intent(this, MainActivity.class);
+            intent.putExtra(Constants.CURRENT_USER, currentUser.getUid());
             startActivity(intent);
         }
     }
@@ -73,6 +74,7 @@ public class Login extends AppCompatActivity {
                                         Log.i("LOGIN_RESPONSE", user.toString());
                                         Toast.makeText(Login.this, R.string.enter_password_again, Toast.LENGTH_SHORT).show();
                                         final Intent intent = new Intent(Login.this, MainActivity.class);
+                                        intent.putExtra(Constants.CURRENT_USER, user.getUid());
                                         startActivity(intent);
                                     } else {
                                         // If sign in fails, display a message to the user.

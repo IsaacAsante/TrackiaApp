@@ -26,6 +26,7 @@ import android.widget.Toast;
 
 import com.google.firebase.FirebaseApp;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.firestore.FirebaseFirestore;
 
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
@@ -37,6 +38,10 @@ public class MainActivity extends AppCompatActivity {
     private Executor executor;
     private BiometricPrompt biometricPrompt;
     private BiometricPrompt.PromptInfo promptInfo;
+
+    private FirebaseFirestore db;
+
+    private String userUID;
 
     // Menu
     @Override
@@ -69,9 +74,13 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        // Firestore
+        db = FirebaseFirestore.getInstance();
+        userUID = getIntent().getStringExtra(Constants.CURRENT_USER);
+        Log.i(Constants.CURRENT_USER, userUID);
+
         executor = ContextCompat.getMainExecutor(this);
         // TODO: Add termination date to the User schema in the DB (Node JS)
-        // TODO: SignOut must be a menu item and communicate with Firestore
 
         // Enable Worker
         final PeriodicWorkRequest periodicWorkRequest = new PeriodicWorkRequest.Builder(Authenticator.class, Constants.AUTHENTICATION_INTERVAL, TimeUnit.MINUTES).build();

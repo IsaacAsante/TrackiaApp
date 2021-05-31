@@ -1,6 +1,7 @@
 package com.example.backgroundapp;
 
 public class Constants {
+    static final String CURRENT_USER = "CurrentUser";
     static final int LOCATION_SERVICE_ID = 300;
     static final String ACTION_START_LOCATION_SERVICE = "startLocationService";
     static final String ACTION_STOP_LOCATION_SERVICE = "stopLocationService";
