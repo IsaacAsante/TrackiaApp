@@ -7,4 +7,7 @@
     <item android:id="@+id/Logout"
         android:title="Logout" />
 
+    <item android:id="@+id/EndQuarantine"
+        android:title="End Quarantine" />
+
 </menu>

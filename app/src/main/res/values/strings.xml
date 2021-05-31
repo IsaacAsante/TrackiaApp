@@ -9,4 +9,8 @@
     <string name="auth_notification_task">Open the Trackia app and authenticate yourself.</string>
     <string name="your_email">Your email</string>
     <string name="your_password">Your password</string>
+    <string name="sign_in">Sign In</string>
+    <string name="enter_email_again">Please enter your email address.</string>
+    <string name="enter_password_again">Please enter your password.</string>
+    <string name="authentication_failed_try_again">Authentication failed. Please try again.</string>
 </resources>

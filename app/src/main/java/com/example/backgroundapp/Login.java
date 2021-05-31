@@ -24,12 +24,14 @@ public class Login extends AppCompatActivity {
     private EditText email, password;
     private Button submit;
 
+    private String emailVal, passwordVal;
+
     @Override
     protected void onStart() {
         super.onStart();
         // Check if user is signed in (non-null) and update UI accordingly.
         FirebaseUser currentUser = mAuth.getCurrentUser();
-        if(currentUser != null){
+        if (currentUser != null) {
             Intent intent = new Intent(this, MainActivity.class);
             startActivity(intent);
         }
@@ -51,24 +53,35 @@ public class Login extends AppCompatActivity {
         submit.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                mAuth.signInWithEmailAndPassword(email.getText().toString().trim(), password.getText().toString().trim())
-                        .addOnCompleteListener(Login.this, new OnCompleteListener<AuthResult>() {
-                            @Override
-                            public void onComplete(@NonNull Task<AuthResult> task) {
-                                if (task.isSuccessful()) {
-                                    // Sign in success, update UI with the signed-in user's information
-                                    Log.d("LOGIN_RESPONSE", "signInWithEmail:success");
-                                    FirebaseUser user = mAuth.getCurrentUser();
-                                    final Intent intent = new Intent(Login.this, MainActivity.class);
-                                    startActivity(intent);
-                                } else {
-                                    // If sign in fails, display a message to the user.
-                                    Log.w("LOGIN_RESPONSE", "signInWithEmail:failure", task.getException());
-                                    Toast.makeText(Login.this, "Authentication failed.",
-                                            Toast.LENGTH_SHORT).show();
+                // Login Form field values
+                emailVal = email.getText().toString().trim();
+                passwordVal = password.getText().toString().trim();
+
+                if (emailVal.isEmpty()) {
+                    Toast.makeText(Login.this, R.string.enter_email_again, Toast.LENGTH_SHORT).show();
+                } else if
+                (passwordVal.isEmpty()) {
+                    Toast.makeText(Login.this, R.string.enter_password_again, Toast.LENGTH_SHORT).show();
+                } else {
+                    mAuth.signInWithEmailAndPassword(emailVal, passwordVal)
+                            .addOnCompleteListener(Login.this, new OnCompleteListener<AuthResult>() {
+                                @Override
+                                public void onComplete(@NonNull Task<AuthResult> task) {
+                                    if (task.isSuccessful()) {
+                                        // Sign in success, update UI with the signed-in user's information
+                                        FirebaseUser user = mAuth.getCurrentUser();
+                                        Log.i("LOGIN_RESPONSE", user.toString());
+                                        Toast.makeText(Login.this, R.string.enter_password_again, Toast.LENGTH_SHORT).show();
+                                        final Intent intent = new Intent(Login.this, MainActivity.class);
+                                        startActivity(intent);
+                                    } else {
+                                        // If sign in fails, display a message to the user.
+                                        Log.w("LOGIN_RESPONSE", "signInWithEmail:failure", task.getException());
+                                        Toast.makeText(Login.this, R.string.authentication_failed_try_again, Toast.LENGTH_SHORT).show();
+                                    }
                                 }
-                            }
-                        });
+                            });
+                }
             }
         });
     }

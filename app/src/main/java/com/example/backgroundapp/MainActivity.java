@@ -51,10 +51,14 @@ public class MainActivity extends AppCompatActivity {
         int id = item.getItemId();
         switch (id) {
             case R.id.Logout:
-                FirebaseAuth.getInstance().signOut();
+                FirebaseAuth.getInstance().signOut(); // Sign out the user
                 Toast.makeText(this, "You have signed out from Trackia. Please sign in again.", Toast.LENGTH_LONG).show();
-                Intent intent = new Intent(this, Login.class);
+                Intent intent = new Intent(this, Login.class); // Return to the Login screen
                 startActivity(intent);
+            case R.id.EndQuarantine:
+                clearNotification(Constants.NOTIFICATION_AUTH_ID); // Clear any authentication notification displayed
+                WorkManager.getInstance(this).cancelAllWork(); // Stop all authentication reminders
+                stopLocationService(); // Terminate the location tracking service
             default:
                 return super.onOptionsItemSelected(item);
         }
