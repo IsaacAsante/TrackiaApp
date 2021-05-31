@@ -18,6 +18,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
+import android.os.Build;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.Menu;
@@ -43,6 +44,7 @@ public class MainActivity extends AppCompatActivity {
     private FirebaseFirestore db;
 
     private String userUID;
+    private short authFailedCounter;
 
     private SharedPreferences sharedPreferences;
 
@@ -98,6 +100,9 @@ public class MainActivity extends AppCompatActivity {
         Log.i("PIN_LOCATION", sharedPreferences.getString("pinLocation", ""));
         Log.i("ROLE", sharedPreferences.getString("role", ""));
 
+        // Authentication monitoring
+        authFailedCounter = 0;
+
         executor = ContextCompat.getMainExecutor(this);
         // TODO: Add termination date to the User schema in the DB (Node JS)
 
@@ -112,20 +117,35 @@ public class MainActivity extends AppCompatActivity {
                 @Override
                 public void onAuthenticationError(int errorCode, @NonNull CharSequence errString) {
                     super.onAuthenticationError(errorCode, errString);
+                    authFailedCounter = 0; // No need to count warnings if there's an error (not failure)
                     Toast.makeText(getApplicationContext(), "Error: Biometric authentication is not available.", Toast.LENGTH_SHORT).show();
                 }
 
                 @Override
                 public void onAuthenticationSucceeded(@NonNull BiometricPrompt.AuthenticationResult result) {
                     super.onAuthenticationSucceeded(result);
+                    authFailedCounter = 0; // Reset warning counter
                     // Clear the Authentication notification upon successful fingerprint scanning
                     clearNotification(Constants.NOTIFICATION_AUTH_ID);
+                    Log.i("AUTHENTICATION SUCCESS", "The user's fingerprints were successfully authenticated. Location tracking continues...");
                     Toast.makeText(getApplicationContext(), "Success: Biometric authentication worked.", Toast.LENGTH_SHORT).show();
                 }
 
                 @Override
                 public void onAuthenticationFailed() {
                     super.onAuthenticationFailed();
+                    if (++authFailedCounter >= 3) {
+                        Log.i("AUTHENTICATION FAIL:", "Weird authentication behavior detected." +
+                                "\nGenerating alert in the Trackia system with following details: " +
+                        "\nName: " + sharedPreferences.getString("firstname", "") + " " + sharedPreferences.getString("lastname", "") +
+                                "\nEmail: " + sharedPreferences.getString("email", "") +
+                                "\nContact number: " + sharedPreferences.getString("contact", "") +
+                                "\nDetected at: " + System.currentTimeMillis() + " (Current time in milliseconds, to be converted in Date format)" +
+                                "\nDevice: " + Build.DEVICE +
+                                "\nManufacturer: " + Build.MANUFACTURER +
+                                "\nModel: " + Build.MODEL +
+                                "\nMonitors will reach out to the user to investigate.");
+                    }
                     Toast.makeText(getApplicationContext(), "Failed: Biometric authentication failed.", Toast.LENGTH_SHORT).show();
                 }
             });

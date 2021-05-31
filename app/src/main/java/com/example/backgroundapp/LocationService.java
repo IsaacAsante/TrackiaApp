@@ -40,7 +40,7 @@ public class LocationService extends Service {
                     Log.i("HAVERSINE DISTANCE", String.valueOf(distance) + " kilometers");
                     if (distance > 0.1) {
                         Log.i("VIOLATION", "User detected outside the boundaries of their Quarantine Zone." +
-                                "\nGenerating alert in the system with following details: " +
+                                "\nGenerating alert in the Trackia system with following details: " +
                                 "\nName: " + user_firstname + " " + user_lastname +
                                 "\nEmail: " + user_email +
                                 "\nContact number: " + user_contact +
