@@ -14,7 +14,9 @@
         android:text="@string/start_tracking"
         android:layout_marginLeft="20pt"
         android:layout_marginRight="20pt"
-        android:layout_marginBottom="4pt"/>
+        android:layout_marginBottom="4pt"
+        android:paddingTop="7pt"
+        android:paddingBottom="7pt"/>
 
     <Button
         android:id="@+id/buttonStopLocationUpdates"
@@ -23,7 +25,9 @@
         android:text="@string/stop_tracking"
         android:layout_marginLeft="20pt"
         android:layout_marginRight="20pt"
-        android:layout_marginBottom="4pt" />
+        android:layout_marginBottom="4pt"
+        android:paddingTop="7pt"
+        android:paddingBottom="7pt" />
 
     <Button
         android:id="@+id/buttonAuthenticateWithFingerprint"
@@ -32,6 +36,8 @@
         android:text="@string/authenticate"
         android:layout_marginLeft="20pt"
         android:layout_marginRight="20pt"
-        android:layout_marginBottom="4pt" />
+        android:layout_marginBottom="4pt"
+        android:paddingTop="7pt"
+        android:paddingBottom="7pt" />
 
 </LinearLayout>

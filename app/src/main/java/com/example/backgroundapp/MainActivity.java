@@ -2,12 +2,10 @@ package com.example.backgroundapp;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.appcompat.widget.Toolbar;
 import androidx.biometric.BiometricManager;
 import androidx.biometric.BiometricPrompt;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
-import androidx.work.OneTimeWorkRequest;
 import androidx.work.PeriodicWorkRequest;
 import androidx.work.WorkManager;
 
@@ -24,14 +22,13 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.Button;
 import android.widget.Toast;
 
-import com.google.firebase.FirebaseApp;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.FirebaseFirestore;
 
 import java.util.concurrent.Executor;
-import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
 public class MainActivity extends AppCompatActivity {
@@ -43,9 +40,12 @@ public class MainActivity extends AppCompatActivity {
 
     private FirebaseFirestore db;
 
+    private boolean tracking_ongoing;
     private String userUID;
     private short authFailedCounter;
 
+    private Button buttonStartTracking;
+    private Button buttonStopTracking;
     private SharedPreferences sharedPreferences;
 
     // Menu
@@ -80,6 +80,17 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        // Buttons
+        buttonStartTracking = findViewById(R.id.buttonStartLocationUpdates);
+        buttonStopTracking = findViewById(R.id.buttonStopLocationUpdates);
+        if (isLocationServiceRunning()) {
+            buttonStartTracking.setVisibility(View.GONE);
+            buttonStopTracking.setVisibility(View.VISIBLE);
+        } else {
+            buttonStartTracking.setVisibility(View.VISIBLE);
+            buttonStopTracking.setVisibility(View.GONE);
+        }
 
         // Firestore
         db = FirebaseFirestore.getInstance();
@@ -160,7 +171,7 @@ public class MainActivity extends AppCompatActivity {
         });
 
         // When the user begins tracking
-        findViewById(R.id.buttonStartLocationUpdates).setOnClickListener(new View.OnClickListener() {
+        buttonStartTracking.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 if (ContextCompat.checkSelfPermission(
@@ -173,15 +184,22 @@ public class MainActivity extends AppCompatActivity {
                     );
                 } else {
                     startLocationService();
+                    tracking_ongoing = true;
+                    buttonStartTracking.setVisibility(View.GONE);
+                    buttonStopTracking.setVisibility(View.VISIBLE);
+
                 }
             }
         });
 
         // When the user stops tracking
-        findViewById(R.id.buttonStopLocationUpdates).setOnClickListener(new View.OnClickListener() {
+        buttonStopTracking.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 stopLocationService();
+                tracking_ongoing = false;
+                buttonStopTracking.setVisibility(View.GONE);
+                buttonStartTracking.setVisibility(View.VISIBLE);
             }
         });
     }
