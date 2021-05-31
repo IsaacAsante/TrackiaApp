@@ -44,7 +44,7 @@ public class Authenticator extends Worker {
         NotificationCompat.Builder notification = new NotificationCompat.Builder(getApplicationContext(), Constants.NOTIFICATION_AUTH_TITLE)
                 .setContentTitle(title)
                 .setContentText(task)
-                .setSmallIcon(R.mipmap.ic_launcher);
+                .setSmallIcon(R.mipmap.trackia_logo);
 
         notificationManager.notify(Constants.NOTIFICATION_AUTH_ID, notification.build());
     }

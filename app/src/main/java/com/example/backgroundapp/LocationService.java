@@ -23,7 +23,7 @@ import com.google.android.gms.location.LocationServices;
 
 public class LocationService extends Service {
     private static double pinLatitude, pinLongitude;
-    private static String userUID;
+    private static String userUID, user_firstname, user_lastname, user_contact, user_violationTime, user_email, user_governmentID;
     private LocationCallback locationCallback = new LocationCallback() {
         @Override
         public void onLocationResult(@NonNull LocationResult locationResult) {
@@ -40,8 +40,13 @@ public class LocationService extends Service {
                     Log.i("HAVERSINE DISTANCE", String.valueOf(distance) + " kilometers");
                     if (distance > 0.1) {
                         Log.i("VIOLATION", "User detected outside the boundaries of their Quarantine Zone." +
-                                "\nEmailing monitors now with the following details:\n" +
-                                "User name: ")
+                                "\nGenerating alert in the system with following details: " +
+                                "\nName: " + user_firstname + " " + user_lastname +
+                                "\nEmail: " + user_email +
+                                "\nContact number: " + user_contact +
+                                "\nViolation recorded at: " + System.currentTimeMillis() + " (Current time in milliseconds, to be converted in Date format)" +
+                                "\nViolation location on Google Maps: " + " https://www.google.com/maps/search/" + currentLatitude + "," + currentLongitude +
+                                "\nAllowed Quarantine Zone: " + "https://www.google.com/maps/search/" + pinLatitude + "," + pinLongitude);
                     }
                 }
             }
@@ -68,7 +73,7 @@ public class LocationService extends Service {
                 getApplicationContext(),
                 channelID
         );
-        builder.setSmallIcon(R.mipmap.ic_launcher);
+        builder.setSmallIcon(R.mipmap.trackia_logo);
         builder.setContentTitle("Tracking Your Location");
         builder.setDefaults((NotificationCompat.DEFAULT_ALL));
         builder.setContentIntent(pendingIntent);
@@ -76,9 +81,9 @@ public class LocationService extends Service {
         builder.setPriority(NotificationCompat.PRIORITY_MAX);
 
         // Notification channels required for Android Oreo and above.
-        if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             if (notificationManager != null
-            && notificationManager.getNotificationChannel(channelID) == null) {
+                    && notificationManager.getNotificationChannel(channelID) == null) {
                 NotificationChannel notificationChannel = new NotificationChannel(
                         channelID,
                         "Location_Notification_Channel",
@@ -99,14 +104,14 @@ public class LocationService extends Service {
                 .requestLocationUpdates(locationRequest, locationCallback, Looper.myLooper());
 
         startForeground(Constants.LOCATION_SERVICE_ID, builder.build());
-      }
+    }
 
-      private void stopLocationService() {
+    private void stopLocationService() {
         LocationServices.getFusedLocationProviderClient(this)
                 .removeLocationUpdates(locationCallback);
         stopForeground(true);
         stopSelf();
-      }
+    }
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
@@ -115,10 +120,17 @@ public class LocationService extends Service {
             if (action != null) {
                 if (action.equals(Constants.ACTION_START_LOCATION_SERVICE)) {
                     SharedPreferences sharedPreferences = getApplicationContext().getSharedPreferences(userUID, Context.MODE_PRIVATE);
+                    // Get Quarantine Zone location
                     String pinLocation = intent.getStringExtra("pinLocation");
                     pinLatitude = Double.parseDouble(pinLocation.split(", ")[0]);
                     pinLongitude = Double.parseDouble(pinLocation.split(", ")[1]);
                     startLocationService();
+                    // Save user details;
+                    user_contact = intent.getStringExtra("contact");
+                    user_email = intent.getStringExtra("email");
+                    user_firstname = intent.getStringExtra("firstname");
+                    user_lastname = intent.getStringExtra("lastname");
+                    user_governmentID = intent.getStringExtra("governmentID");
                 } else if (action.equals(Constants.ACTION_STOP_LOCATION_SERVICE)) {
                     stopLocationService();
                 }
