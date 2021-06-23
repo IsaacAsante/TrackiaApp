@@ -11,6 +11,7 @@ import android.os.Build;
 import android.os.IBinder;
 import android.os.Looper;
 import android.util.Log;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -20,33 +21,81 @@ import com.google.android.gms.location.LocationCallback;
 import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationResult;
 import com.google.android.gms.location.LocationServices;
+import com.google.android.gms.tasks.OnFailureListener;
+import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.firebase.firestore.DocumentReference;
+
+import java.util.HashMap;
+import java.util.Map;
 
 public class LocationService extends Service {
     private static double pinLatitude, pinLongitude;
     private static String userUID, user_firstname, user_lastname, user_contact, user_violationTime, user_email, user_governmentID;
+    private static boolean isMock;
+    private static SharedPreferences sharedPreferences;
     private LocationCallback locationCallback = new LocationCallback() {
         @Override
         public void onLocationResult(@NonNull LocationResult locationResult) {
             super.onLocationResult(locationResult);
-            if (locationResult != null && locationResult.getLastLocation() != null) {
-                double currentLatitude = locationResult.getLastLocation().getLatitude();
-                double currentLongitude = locationResult.getLastLocation().getLongitude();
-                Log.i("GPS", "Latitude: " + currentLatitude + " || Longitude: " + currentLongitude);
+            sharedPreferences = getApplicationContext().getSharedPreferences(FireStoreDB.getCurrentUserUID(), Context.MODE_PRIVATE);
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2) {
+                isMock = locationResult.getLastLocation().isFromMockProvider();
+                if (isMock) {
+                    Toast.makeText(getApplicationContext(), "Mock Location detected.", Toast.LENGTH_SHORT).show();
+                    Log.i("MOCK PROVIDER", String.valueOf(isMock));
+                    // Get user details for the spoofing violation
+                    Map<String, Object> violation_spoofing = new HashMap<>();
+                    violation_spoofing.put("governmentID", sharedPreferences.getString("governmentID", ""));
+                    violation_spoofing.put("firstname", sharedPreferences.getString("firstname", ""));
+                    violation_spoofing.put("lastname", sharedPreferences.getString("lastname", ""));
+                    violation_spoofing.put("contact", sharedPreferences.getString("contact", ""));
+                    violation_spoofing.put("email", sharedPreferences.getString("email", ""));
+                    violation_spoofing.put("houseAddress", sharedPreferences.getString("houseAddress", ""));
+                    violation_spoofing.put("pinLocation", sharedPreferences.getString("pinLocation", ""));
+                    violation_spoofing.put("localState", sharedPreferences.getString("localState", ""));
+                    violation_spoofing.put("city", sharedPreferences.getString("city", ""));
+                    violation_spoofing.put("gender", sharedPreferences.getString("gender", ""));
+                    violation_spoofing.put("detection", System.currentTimeMillis());
 
-                Log.i("GPS", "PinLatitude: " + pinLatitude + " || PinLongitude: " + pinLongitude);
+                    Log.i("GPS SPOOFING DETECTED", violation_spoofing.toString());
 
-                if (pinLatitude > 0.0d && pinLongitude > 0.0d) {
-                    double distance = Haversine.getDistance(pinLatitude, pinLongitude, currentLatitude, currentLongitude);
-                    Log.i("HAVERSINE DISTANCE", String.valueOf(distance) + " kilometers");
-                    if (distance > 0.1) {
-                        Log.i("VIOLATION", "User detected outside the boundaries of their Quarantine Zone." +
-                                "\nGenerating alert in the Trackia system with following details: " +
-                                "\nName: " + user_firstname + " " + user_lastname +
-                                "\nEmail: " + user_email +
-                                "\nContact number: " + user_contact +
-                                "\nViolation recorded at: " + System.currentTimeMillis() + " (Current time in milliseconds, to be converted in Date format)" +
-                                "\nViolation location on Google Maps: " + " https://www.google.com/maps/search/" + currentLatitude + "," + currentLongitude +
-                                "\nAllowed Quarantine Zone: " + "https://www.google.com/maps/search/" + pinLatitude + "," + pinLongitude);
+                    // Add violation to the DB
+                    FireStoreDB.getCollectionRef(Constants.FIRESTORE_VIOLATIONS_SPOOFING_COLLECTIONS)
+                            .add(violation_spoofing)
+                            .addOnSuccessListener(new OnSuccessListener<DocumentReference>() {
+                                @Override
+                                public void onSuccess(DocumentReference documentReference) {
+                                    Log.i("SUCCESS", "Spoofing violation updated in the Database");
+                                }
+                            })
+                            .addOnFailureListener(new OnFailureListener() {
+                                @Override
+                                public void onFailure(@NonNull Exception e) {
+                                    Log.i("RETRY", "DB error");
+                                }
+                            });
+                } else {
+                    if (locationResult != null && locationResult.getLastLocation() != null) {
+                        double currentLatitude = locationResult.getLastLocation().getLatitude();
+                        double currentLongitude = locationResult.getLastLocation().getLongitude();
+                        Log.i("GPS", "Latitude: " + currentLatitude + " || Longitude: " + currentLongitude);
+
+                        Log.i("GPS", "PinLatitude: " + pinLatitude + " || PinLongitude: " + pinLongitude);
+
+                        if (pinLatitude > 0.0d && pinLongitude > 0.0d) {
+                            double distance = Haversine.getDistance(pinLatitude, pinLongitude, currentLatitude, currentLongitude);
+                            Log.i("HAVERSINE DISTANCE", String.valueOf(distance) + " kilometers");
+                            if (distance > 0.1) {
+                                Log.i("VIOLATION", "User detected outside the boundaries of their Quarantine Zone." +
+                                        "\nGenerating alert in the Trackia system with following details: " +
+                                        "\nName: " + user_firstname + " " + user_lastname +
+                                        "\nEmail: " + user_email +
+                                        "\nContact number: " + user_contact +
+                                        "\nViolation recorded at: " + System.currentTimeMillis() + " (Current time in milliseconds, to be converted in Date format)" +
+                                        "\nViolation location on Google Maps: " + " https://www.google.com/maps/search/" + currentLatitude + "," + currentLongitude +
+                                        "\nAllowed Quarantine Zone: " + "https://www.google.com/maps/search/" + pinLatitude + "," + pinLongitude);
+                            }
+                        }
                     }
                 }
             }

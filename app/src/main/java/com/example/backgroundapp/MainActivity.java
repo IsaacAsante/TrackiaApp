@@ -6,6 +6,7 @@ import androidx.biometric.BiometricManager;
 import androidx.biometric.BiometricPrompt;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
+import androidx.work.ExistingPeriodicWorkPolicy;
 import androidx.work.PeriodicWorkRequest;
 import androidx.work.WorkManager;
 
@@ -112,6 +113,8 @@ public class MainActivity extends AppCompatActivity {
         // Firestore
         db = FirebaseFirestore.getInstance();
         userUID = getIntent().getStringExtra(Constants.CURRENT_USER);
+        // Save the user's UID as a global variable
+        FireStoreDB.setCurrentUserUID(userUID);
         Log.i(Constants.CURRENT_USER, userUID);
 
         sharedPreferences = getApplicationContext().getSharedPreferences(userUID, Context.MODE_PRIVATE);
@@ -143,8 +146,8 @@ public class MainActivity extends AppCompatActivity {
 
         // Enable Worker
         final PeriodicWorkRequest periodicWorkRequest = new PeriodicWorkRequest.Builder(Authenticator.class, Constants.AUTHENTICATION_INTERVAL, TimeUnit.MINUTES).build();
-        WorkManager.getInstance(this).enqueue(periodicWorkRequest);
-        // TODO: Implement unique requests https://stackoverflow.com/a/50943231/1536240
+        // Only ever run a single work at a time. No replacement.
+        WorkManager.getInstance(this).enqueueUniquePeriodicWork(Constants.AUTH_PERIODIC_WORK_REQUEST, ExistingPeriodicWorkPolicy.KEEP, periodicWorkRequest);
 
         // Initalize biometricprompt
         if (biometricPrompt == null) {
